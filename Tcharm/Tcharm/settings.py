@@ -75,14 +75,21 @@ WSGI_APPLICATION = 'Tcharm.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',  # setting up default db engine
+#         'NAME': "tcharmdb",  # name of db
+#         "USER": "postgres",  # who can access it
+#         "PASSWORD": "02121998",
+#         "HOST":  "localhost",  # where to find,
+#         "PORT": "5432",  # port of server
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',  # setting up default db engine
-        'NAME': "tcharmdb",  # name of db
-        "USER": "postgres",  # who can access it
-        "PASSWORD": "02121998",
-        "HOST":  "localhost",  # where to find,
-        "PORT": "5432",  # port of server
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
