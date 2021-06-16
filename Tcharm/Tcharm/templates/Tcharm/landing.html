@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tcharm</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/nav.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/body.css' %}">
+    <script type="text/javascript" src="{% static 'js/jquery.js' %}"></script>
+</head>
+<body>
+{% block content %}
+{% endblock %}
+{% block content1 %}
+{% endblock %}
+<script type="text/javascript" src="{% static 'js/Chart.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

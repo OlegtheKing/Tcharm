@@ -1,0 +1,235 @@
+ {% extends "Tcharm/nav.html" %}
+ {% block content1 %}
+    <div class="cont-body">
+		<div id="input" class="half l">
+			<div class="top">
+				Input your text below:
+			</div>
+			<div class="main">
+				<textarea id="txtf" class="bigtxt"></textarea>
+				<div class="filling"></div>
+				<div class="cont-btns">
+					<button id="cbtn1" class="btn-ctrl l">
+						Correct spelling errors
+					</button>
+					<div class="filling2 l"></div>
+					{% if user.is_authenticated %}
+					<button id="cbtn2" class="btn-ctrl l">
+						Search for overused words
+					</button>
+					<div class="filling2 l"></div>
+					<button id="cbtn3" class="btn-ctrl l">
+						Translate into audio
+					</button>
+					{% else %}
+					<button class="btn-ctrl-inact l">
+						Search for overused words
+					</button>
+					<div class="filling2 l"></div>
+					<button class="btn-ctrl-inact l">
+						Translate into audio
+					</button>
+					{% endif %}
+				</div>
+				<div class="filling"></div>
+				<div id="spcf" class="spc-f dn">
+					<div class="cont-hw l">
+						<div class="cont-hh">
+							Input word to find synonym below:
+						</div>
+						<div  class="cont-hh">
+							<input id="wts" type="text" class="finp" style="text-align: center" placeholder="input your word"/>
+						</div>
+					</div>
+					<div class="cont-hw l">
+						<div class="cont-hh">
+							<button id="btss" class="fbtn">
+								Find!
+							</button>
+						</div>
+						<div id="wo" class="cont-hh-c"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="output" class="half l dn">
+			<div class="top">
+				Output:
+			</div>
+			<div class="main">
+				<div id="datah1" class="data dn">
+				</div>
+				<div id="datah2" class="cont-data dn">
+					<div class="cont-chart dn">
+        				<canvas class="wchart" id="myChart"></canvas>
+    				</div>
+					<div class="cont-dtxt">
+					</div>
+					<div class="filling"></div>
+					<input id="cbc" class="log-reg l" type="checkbox" />
+					<div class="cbx-txt l">
+						Convert to chart.
+					</div>
+				</div>
+				<div id="datah3" class="data-sm dn">
+					<div id="aucont" class="cont-au-s">
+						<div class="subcont-audio">
+							<div id="fs" class="cont-fs l"></div>
+							<audio class="au r" controls preload="metadata" src="#"></audio>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="ph" class="half l bgc-g"></div>
+	</div>
+ 	<script>
+ 		var cacheDict = {}
+ 		var customChart = {};
+		$("#cbtn1").click(function(e) {
+			var outputf = $("#output");
+			var datahf = $("#datah1");
+			if (outputf.css("display") == "none") {
+				$("#ph").css("display", "none");
+				outputf.css("display", "block");
+			}
+			if (datahf.css("display") == "none") {
+				datahf.css("display", "block");
+			}
+			var txt = $("#txtf").val();
+			$.ajax({
+				type: "POST",
+				url: {% url "corspell" %},
+				dataType: "json",
+				data: { csrfmiddlewaretoken: "{{ csrf_token }}",
+				 		content: txt
+				 },
+				success: function(answer) {
+					var rsp = JSON.parse(answer.corrected);
+					var keys = Object.keys(rsp.corrections);
+					var df = $("#datah1")[0];
+					df.innerHTML = "Suggested spelling:<br />" + rsp.suggestion + "<br /><br /><br />";
+					df.innerHTML += "List of corrections:<br />";
+					if (keys.length == 0) {
+						df.innerHTML += "None<br />";
+					}
+					else {
+						for (var key of keys) {
+							df.innerHTML += "word: " + key + ", correction: " + rsp.corrections[key][0] + "<br />";
+						}
+					}
+				}
+			});
+		});
+		$("#cbtn2").click(function(e) {
+			var specf = $("#spcf");
+			var outputf = $("#output");
+			var datahf = $("#datah2");
+			if (specf.css("display") == "none") {
+				specf.css("display", "block");
+			}
+			if (outputf.css("display") == "none") {
+				$("#ph").css("display", "none");
+				outputf.css("display", "block");
+			}
+			if (datahf.css("display") == "none") {
+				datahf.css("display", "block");
+			}
+			var txt = $("#txtf").val();
+			$.ajax({
+				type: "POST",
+				url: {% url "overused" %},
+				dataType: "json",
+				data: { csrfmiddlewaretoken: "{{ csrf_token }}",
+				 		content: txt
+				 },
+				success: function(answer) {
+					window.cacheDict = answer.overused;
+					if ($("#cbc").is(':checked')) {
+						load(window.customChart, window.cacheDict);
+					}
+					else {
+						var keys = Object.keys(answer.overused);
+						var df = datahf.children(".cont-dtxt")[0];
+						df.innerHTML = "List of overused words:<br /><br />";
+						console.log(keys.length);
+						if (keys.length == 0) {
+							df.innerHTML += "None<br />";
+						}
+						else {
+							for (var key of keys) {
+								df.innerHTML += "word: " + key + ", matches: " + answer.overused[key] + "<br />";
+							}
+						}
+					}
+				}
+			});
+		});
+		$("#cbc").change(function(e) {
+			var df = $("#datah2").children(".cont-dtxt");
+			var cf = $("#datah2").children(".cont-chart");
+			if (df.css("display") == "block") {
+				df.css("display", "none");
+				cf.css("display", "block");
+			}
+			else {
+				df.css("display", "block");
+				cf.css("display", "none");
+			}
+			if ($("#cbc").is(':checked')) {
+				load(window.customChart, window.cacheDict);
+			}
+			else {
+				var df = $("#datah2").children(".cont-dtxt")[0];
+				var keys = Object.keys(window.cacheDict);
+				df.innerHTML = "List of overused words:<br /><br />";
+				if (keys.length == 0) {
+					df.innerHTML += "None<br />";
+				}
+				else {
+					for (var key of keys) {
+						df.innerHTML += "word: " + key + ", matches: " + cacheDict[key] + "<br />";
+					}
+				}
+			}
+		});
+		$("#btss").click(function(e) {
+			var txt = $("#wts").val();
+			$.ajax({
+				type: "GET",
+				url: '{% url "synonym" %}',
+				dataType: "json",
+				data: { content: txt },
+				success: function(answer) {
+					console.log(answer)
+					var sugg = answer.word[0].meta.syns[0][0];
+					$("#wo")[0].innerHTML = "word: " + sugg;
+				}
+			});
+		});
+		$("#cbtn3").click(function(e) {
+			var outputf = $("#output");
+			var datahf = $("#datah3");
+			if (outputf.css("display") == "none") {
+				$("#ph").css("display", "none");
+				outputf.css("display", "block");
+			}
+			if (datahf.css("display") == "none") {
+				datahf.css("display", "block");
+			}
+			var txt = $("#txtf").val();
+			$.ajax({
+				type: "POST",
+				url: '{% url "convert" %}',
+				dataType: "json",
+				data: { csrfmiddlewaretoken: "{{ csrf_token }}",
+						content: txt },
+				success: function(answer) {
+					$("#fs")[0].innerHTML = "File size: " + answer.filesize;
+					$("audio").attr("src", answer.audiopath);
+					alert("File is saved!");
+				}
+			});
+		});
+	</script>
+ {% endblock %}

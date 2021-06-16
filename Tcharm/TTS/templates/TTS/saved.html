@@ -1,0 +1,27 @@
+{% extends "Tcharm/nav.html" %}
+{% block content1 %}
+    <div class="cont-body">
+        <div class="half l">
+            <div class="top">
+                Saved tts':
+            </div>
+            <div class="main">
+                {% if data %}
+                    {% for i in data %}
+                        <div class="data-sm">
+                            <div class="cont-au-s">
+                                <div class="subcont-audio">
+                                    <div class="cont-fs l">File size: {{ i.1 }}</div>
+                                    <audio class="au r" controls preload="metadata" src="/media/{{ i.0 }}"></audio>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    None
+                {% endif %}
+            </div>
+        </div>
+        <div class="half l bgc-g"></div>
+    </div>
+{% endblock %}

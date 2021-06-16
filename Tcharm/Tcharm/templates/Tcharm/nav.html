@@ -1,0 +1,114 @@
+{% extends "Tcharm/landing.html" %}
+{% load static %}
+{% block content %}
+	<div class="cont-nav">
+		<div class="cont-logo l">
+			<a href="{% url 'land' %}">
+				<img class="img-full" src="{% static 'img/mainlogo.png' %}" />
+			</a>
+		</div>
+		<div class="cont-btn r">
+			<a href="{% url 'about' %}">
+				<button class="btn-full">
+					About
+				</button>
+			</a>
+		</div>
+		{% if user.is_authenticated == False %}
+		<div class="cont-btn r">
+			<button class="btn-full" onclick="openbyid('cover')">
+				Log In
+			</button>
+		</div>
+		{% else %}
+		<div class="cont-btn r">
+			<button class="btn-full" onclick="alternate('menu1')">
+				<img class="img-1" src="{% static 'img/exp-ico.png' %}" />
+			</button>
+			<div id="menu1" class="exp-menu">
+				<a href="{% url 'saved' %}">
+					<button class="btn-menu">
+						Saved TTS
+					</button>
+				</a>
+				<div class="filling"></div>
+				<button class="btn-menu" onclick="submitbyid('logoutf')">
+					Log Out
+				</button>	
+				<form id="logoutf" method="POST" action="{% url 'logout' %}">
+					{% csrf_token %}
+					<input type="hidden" />
+				</form>
+			</div>
+		</div>
+		{% endif %}
+	</div>
+	{% if not user.is_authenticated %}
+	<div id="infomsg" class="info-block">
+		<div class="cont-at-icon l">
+			<img class="img-full" src="{% static 'img/inf-ico.png' %}" />
+		</div>
+		<div class="cont-txt l">
+			In order to use analysis and TTS functions you need to log in!
+		</div>
+		<button class="btn-cls r" onclick="clsbyid('infomsg')">
+			<img class="img-full" src="{% static 'img/cls-ico.png' %}" />
+		</button>
+	</div>
+	{% endif %}
+	<div id="cover" class="cover">
+		<div class="log-form">
+			<div class="log-cls">
+				<button class="btn-cls r" onclick="clsbyid('cover')">
+					<img class="img-full" src="{% static 'img/cls-ico.png' %}" />
+				</button>
+			</div>
+			<div class="log-title">
+				Log In:
+			</div>
+			<form id="lform" method="POST" action="{% url 'logreg' %}">
+				<input class="log-inp" type="text" name="username" placeholder="username" />
+				<div class="filling"></div>
+				<input class="log-inp" type="password" name="password" placeholder="password" />
+				<div class="filling"></div>
+				<input class="log-sub" type="submit" value="Submit!" />
+				<div class="filling"></div>
+				<div class="log-cont-error"></div>
+				<div class="filling"></div>
+				<input class="log-reg l" type="checkbox" name="register"/>
+				<div class="log-sm-txt l">
+					First time here? Checkmark to register.
+				</div>
+			</form>
+		</div>
+	</div>
+	<script>
+		$("#lform").submit(function(e) {
+			e.preventDefault();
+			var t = $(this)
+			var tusername = $(t).children("input[name='username']").val();
+			var tpassword = $(t).children("input[name='password']").val();
+			var tregister = $(t).children("input[name='register']").is(":checked");
+			$.ajax({
+				type: this.method,
+				url: this.action,
+				dataType: "json",
+				data: { csrfmiddlewaretoken: "{{ csrf_token }}",
+				 		username: tusername,
+				 		password: tpassword,
+				 		register: tregister
+				 },
+				success: function(answer) {
+					var obj = $(t).children(".log-cont-error");
+					obj[0].style.color = answer.color;
+					obj[0].innerText = answer.message;
+					if (answer.refresh == "true") {
+						location.reload();
+					}
+				}
+			});
+		});
+	</script>
+{% endblock %}
+{% block content1 %}
+{% endblock %}
